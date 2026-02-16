@@ -1,3 +1,13 @@
+fn hour12_to_24(hour: u32, am_pm: &str) -> u32 {
+    match (am_pm, hour) {
+        ("AM", 12) => 0,
+        ("AM", _) => hour,
+        ("PM", 12) => 12,
+        ("PM", _) => hour + 12,
+        _ => hour, // fallback, should not happen if input is valid
+    }
+}
+
 peg::parser! {
     pub grammar time_parser() for str {
         pub rule time() -> u32
@@ -5,13 +15,7 @@ peg::parser! {
 
         rule full12_time() -> u32
             = h:hour12() ":" m:minute() am_pm:am_pm() {
-                let mut hour = h;
-                if am_pm == "PM" && hour != 12 {
-                    hour += 12;
-                } else if am_pm == "AM" && hour == 12 {
-                    hour = 0;
-                }
-                hour * 60 + m
+                hour12_to_24(h, am_pm) * 60 + m
             }
 
         rule full24_time() -> u32
@@ -21,13 +25,7 @@ peg::parser! {
 
         rule short_time() -> u32
             = h:hour12() am_pm:am_pm() {
-                let mut hour = h;
-                if am_pm == "PM" && hour != 12 {
-                    hour += 12;
-                } else if am_pm == "AM" && hour == 12 {
-                    hour = 0;
-                }
-                hour * 60
+                hour12_to_24(h, am_pm) * 60
             }
 
         rule digit() -> u32
