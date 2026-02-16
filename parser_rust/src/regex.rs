@@ -12,20 +12,31 @@ impl TimeParser {
     }
 
     fn parse_regex() -> Regex {
-        let hour12_full = r"(?P<hour12_full>1[0-2]|[1-9])";
-        let minute_full = r"(?P<minute_full>[0-5][0-9])";
-        let ampm_full = r"(?P<ampm_full>AM|PM)";
+        // Define regex patterns for different time formats
+        let hour12 = "1[0-2]|[1-9]";
+        let hour24 = "2[0-3]|1[0-9]|[0-9]";
+        let minute = "[0-5][0-9]";
+        let am_pm = "AM|PM";
 
-        let hour24 = r"(?P<hour24>2[0-3]|1[0-9]|[0-9])";
-        let minute24 = r"(?P<minute24>[0-5][0-9])";
+        // For 12-hour format with minutes
+        let hour12_full = format!(r"(?P<hour12_full>{})", hour12);
+        let minute_full = format!(r"(?P<minute_full>{})", minute);
+        let ampm_full = format!(r"(?P<ampm_full>{})", am_pm);
 
-        let hour12_short = r"(?P<hour12_short>1[0-2]|[1-9])";
-        let ampm_short = r"(?P<ampm_short>AM|PM)";
+        // For 24-hour format
+        let hour24 = format!(r"(?P<hour24>{})", hour24);
+        let minute24 = format!(r"(?P<minute24>{})", minute);
 
+        // For 12-hour format without minutes
+        let hour12_short = format!(r"(?P<hour12_short>{})", hour12);
+        let ampm_short = format!(r"(?P<ampm_short>{})", am_pm);
+
+        // Combine patterns into a single regex
         let time_full12 = format!(r"^{}:{}{}$", hour12_full, minute_full, ampm_full);
         let time_full24 = format!(r"^{}:{}$", hour24, minute24);
         let time_short = format!(r"^{}{}$", hour12_short, ampm_short);
 
+        // Compile the combined regex
         Regex::new(&format!("{}|{}|{}", time_full12, time_full24, time_short)).unwrap()
     }
 
