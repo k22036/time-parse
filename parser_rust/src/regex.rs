@@ -12,14 +12,19 @@ impl TimeParser {
     }
 
     fn parse_regex() -> Regex {
-        let hour12 = r"(1[0-2]|[1-9])";
-        let hour24 = r"(2[0-3]|1[0-9]|[0-9])";
-        let minute = r"([0-5][0-9])";
-        let am_pm = r"(AM|PM)";
+        let hour12_full = r"(?P<hour12_full>1[0-2]|[1-9])";
+        let minute_full = r"(?P<minute_full>[0-5][0-9])";
+        let ampm_full = r"(?P<ampm_full>AM|PM)";
 
-        let time_full12 = format!(r"^{}:{}{}$", hour12, minute, am_pm);
-        let time_full24 = format!(r"^{}:{}$", hour24, minute);
-        let time_short = format!(r"^{}{}$", hour12, am_pm);
+        let hour24 = r"(?P<hour24>2[0-3]|1[0-9]|[0-9])";
+        let minute24 = r"(?P<minute24>[0-5][0-9])";
+
+        let hour12_short = r"(?P<hour12_short>1[0-2]|[1-9])";
+        let ampm_short = r"(?P<ampm_short>AM|PM)";
+
+        let time_full12 = format!(r"^{}:{}{}$", hour12_full, minute_full, ampm_full);
+        let time_full24 = format!(r"^{}:{}$", hour24, minute24);
+        let time_short = format!(r"^{}{}$", hour12_short, ampm_short);
 
         Regex::new(&format!("{}|{}|{}", time_full12, time_full24, time_short)).unwrap()
     }
@@ -36,18 +41,25 @@ impl TimeParser {
 
     pub fn parse(&self, time_str: &str) -> Option<u32> {
         if let Some(caps) = self.regex.captures(time_str) {
-            if let Some(hour) = caps.get(1) {
-                let h: u32 = hour.as_str().parse().unwrap();
-                let m: u32 = caps.get(2).unwrap().as_str().parse().unwrap();
-                let am_pm = caps.get(3).unwrap().as_str();
+            if let (Some(hour), Some(minute), Some(am_pm)) = (
+                caps.name("hour12_full"),
+                caps.name("minute_full"),
+                caps.name("ampm_full"),
+            ) {
+                let h: u32 = hour.as_str().parse().ok()?;
+                let m: u32 = minute.as_str().parse().ok()?;
+                let am_pm = am_pm.as_str();
                 return Some(Self::hour12_to_24(h, am_pm) * 60 + m);
-            } else if let Some(hour) = caps.get(4) {
-                let h: u32 = hour.as_str().parse().unwrap();
-                let m: u32 = caps.get(5).unwrap().as_str().parse().unwrap();
+            } else if let (Some(hour), Some(minute)) = (caps.name("hour24"), caps.name("minute24"))
+            {
+                let h: u32 = hour.as_str().parse().ok()?;
+                let m: u32 = minute.as_str().parse().ok()?;
                 return Some(h * 60 + m);
-            } else if let Some(hour) = caps.get(6) {
-                let h: u32 = hour.as_str().parse().unwrap();
-                let am_pm = caps.get(7).unwrap().as_str();
+            } else if let (Some(hour), Some(am_pm)) =
+                (caps.name("hour12_short"), caps.name("ampm_short"))
+            {
+                let h: u32 = hour.as_str().parse().ok()?;
+                let am_pm = am_pm.as_str();
                 return Some(Self::hour12_to_24(h, am_pm) * 60);
             }
         }
