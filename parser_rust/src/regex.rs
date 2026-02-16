@@ -12,8 +12,8 @@ impl TimeParser {
     }
 
     fn parse_regex() -> Regex {
-        let hour12 = r"(1[0-2]|0?[1-9])";
-        let hour24 = r"(2[0-3]|1[0-9]|0?[0-9])";
+        let hour12 = r"(1[0-2]|[1-9])";
+        let hour24 = r"(2[0-3]|1[0-9]|[0-9])";
         let minute = r"([0-5][0-9])";
         let am_pm = r"(AM|PM)";
 
@@ -52,5 +52,48 @@ impl TimeParser {
             }
         }
         None
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_time_parser_ok() {
+        let table = vec![
+            ("4PM", 16 * 60),
+            ("12AM", 0),
+            ("12PM", 12 * 60),
+            ("7:38PM", 19 * 60 + 38),
+            ("23:42", 23 * 60 + 42),
+            ("3:16", 3 * 60 + 16),
+            ("3:16AM", 3 * 60 + 16),
+            ("12:00AM", 0),
+            ("12:00PM", 12 * 60),
+            ("1AM", 1 * 60),
+            ("1PM", 13 * 60),
+            ("0:00", 0),
+            ("23:59", 23 * 60 + 59),
+            ("9AM", 9 * 60),
+            ("9:05PM", 21 * 60 + 5),
+        ];
+
+        for (input, expected) in table {
+            let parser = TimeParser::new();
+            let result = parser.parse(input);
+            assert_eq!(result, Some(expected), "Failed to parse '{}'", input);
+        }
+    }
+
+    #[test]
+    fn test_time_parser_ng() {
+        let table = vec!["00:00", "24:00", "13:60", "0AM", "12:61PM", "abc"];
+
+        for input in table {
+            let parser = TimeParser::new();
+            let result = parser.parse(input);
+            assert_eq!(result, None, "Expected error for '{}'", input);
+        }
     }
 }
