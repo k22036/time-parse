@@ -1,0 +1,21 @@
+# BNF grammar for time expressions
+<time> ::= <time_full12> | <time_full24> | <time_short>
+
+# The full 12-hour time format includes hours, minutes, and a required AM/PM indicator.
+<time_full12> ::= <hour12> ":" <minute> <am_pm>
+<time_full24> ::= <hour24> ":" <minute>
+<time_short> ::= <hour12> <am_pm>
+
+# Digits for hours and minutes
+<digit> ::= "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9"
+
+# Hours can be from 0 to 23 in 24-hour format, or 1 to 12 in 12-hour format.
+<hour12> ::= "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9" | "10" | "11" | "12"
+<hour24> ::= <digit> | "1" <digit> | "2" "0" | "2" "1" | "2" "2" | "2" "3"
+
+# Minutes can be from 00 to 59, where the first digit is from 0 to 5.
+<minute_first_digit> ::= "0" | "1" | "2" | "3" | "4" | "5"
+<minute> ::= <minute_first_digit> <digit>
+
+# AM/PM indicators for 12-hour time format.
+<am_pm> ::= "AM" | "PM"
